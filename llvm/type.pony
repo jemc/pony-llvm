@@ -1,7 +1,7 @@
 
 trait Type is _Ref
   fun string(): String =>
-    _Message(@LLVMPrintTypeToString[Pointer[U8] val](_p()))
+    _Message.copy_in(@LLVMPrintTypeToString[Pointer[U8] val](_p()))
   
   fun context(): this->Context! =>
     var p = @LLVMGetTypeContext[_Ptr](_p()) // TODO: use let (compiler bug)
@@ -241,10 +241,10 @@ class StructType is Type
   
   new named(name': String, context': (Context | None) = None) =>
     _ptr = match context' | let c: Context =>
-      @LLVMStructCreateNamed[_Ptr](c._p(), name'.cstring())
+      @LLVMStructCreateNamed[_Ptr](c._p(), _Message.copy_out(name'))
     else
       let c_p = @LLVMGetGlobalContext[_Ptr]()
-      @LLVMStructCreateNamed[_Ptr](c_p, name'.cstring())
+      @LLVMStructCreateNamed[_Ptr](c_p, _Message.copy_out(name'))
     end
   
   fun name(): String =>
