@@ -29,23 +29,6 @@ class Value is _Ref
   
   fun uses(): Iterator[this->Use!]^ =>
     let p = @LLVMGetFirstUse[_Ptr](_p())
-    _ModuleUses[this->Use](p)
-
-class _ModuleUses[A: Use #read] is Iterator[A]
-  // TODO: refactor with similar iterators to common class
-  var _iter: _Ptr
-  var _first: Bool = true
-  new create(iter': _Ptr) => _iter = iter'
-  
-  fun ref next(): A? =>
-    let p =
-      if _first then _iter
-      else _iter = @LLVMGetNextUse[_Ptr](_iter)
-      end
-    
-    _first = false
-    if (identityof p) == 0 then error end
-    recover A._from_p(p) end
-  
-  fun has_next(): Bool =>
-    true
+    _RefIterator[this->Use](p, recover lambda tag(ptr': _Ptr): _Ptr =>
+      @LLVMGetNextUse[_Ptr](ptr')
+    end end)

@@ -40,23 +40,6 @@ class Module is _Ref
   
   fun functions(): Iterator[this->Value!]^ =>
     let p = @LLVMGetFirstFunction[_Ptr](_p())
-    _ModuleFunctions[this->Value](p)
-
-class _ModuleFunctions[A: Value #read] is Iterator[A]
-  // TODO: refactor with similar iterators to common class
-  var _iter: _Ptr
-  var _first: Bool = true
-  new create(iter': _Ptr) => _iter = iter'
-  
-  fun ref next(): A? =>
-    let p =
-      if _first then _iter
-      else _iter = @LLVMGetNextFunction[_Ptr](_iter)
-      end
-    
-    _first = false
-    if (identityof p) == 0 then error end
-    recover A._from_p(p) end
-  
-  fun has_next(): Bool =>
-    true
+    _RefIterator[this->Value](p, recover lambda tag(ptr': _Ptr): _Ptr =>
+      @LLVMGetNextFunction[_Ptr](ptr')
+    end end)
