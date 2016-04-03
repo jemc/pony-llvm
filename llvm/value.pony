@@ -121,6 +121,18 @@ class InstructionValue is Value
   
   fun erase_from_parent() =>
     @LLVMInstructionEraseFromParent[None](_p())
+  
+  fun opcode(): Opcode =>
+    let i32 = @LLVMGetInstructionOpcode[I32](_p())
+    _OpcodeUtil._from_i32(i32)
+  
+  fun int_predicate(): IntPredicate =>
+    let i32 = @LLVMGetICmpPredicate[I32](_p())
+    _IntPredicateUtil._from_i32(i32)
+  
+  fun real_predicate(): RealPredicate =>
+    let i32 = @LLVMGetFCmpPredicate[I32](_p())
+    _RealPredicateUtil._from_i32(i32)
 
 class TermInstructionValue is Value
   let _ptr: _Ptr
