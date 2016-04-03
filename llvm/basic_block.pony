@@ -16,14 +16,6 @@ class BasicBlock is _Ref
     let p = @LLVMGetBasicBlockTerminator[_Ptr](_p())
     recover TermInstructionValue._from_p(p) end
   
-  fun first_instruction(): this->InstructionValue! =>
-    let p = @LLVMGetFirstInstruction[_Ptr](_p())
-    recover InstructionValue._from_p(p) end
-  
-  fun last_instruction(): this->InstructionValue! =>
-    let p = @LLVMGetLastInstruction[_Ptr](_p())
-    recover InstructionValue._from_p(p) end
-  
   fun ref insert_basic_block(
     name': String, context': (Context | None) = None
   ): BasicBlock! =>
@@ -46,3 +38,17 @@ class BasicBlock is _Ref
   
   fun ref move_to_after(that: BasicBlock box) =>
     @LLVMMoveBasicBlockBefore[None](_p(), that._p())
+  
+  fun instructions(): Iterator[this->InstructionValue!]^ =>
+    let start = @LLVMGetFirstInstruction[_Ptr](_p())
+    _RefIterator[this->InstructionValue](start,
+      recover lambda tag(ptr': _Ptr): _Ptr =>
+        @LLVMGetNextInstruction[_Ptr](ptr')
+      end end)
+  
+  fun reverse_instructions(): Iterator[this->InstructionValue!]^ =>
+    let start = @LLVMGetLastInstruction[_Ptr](_p())
+    _RefIterator[this->InstructionValue](start,
+      recover lambda tag(ptr': _Ptr): _Ptr =>
+        @LLVMGetPreviousInstruction[_Ptr](ptr')
+      end end)

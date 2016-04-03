@@ -39,7 +39,15 @@ class Module is _Ref
     recover FunctionValue._from_p(p) end
   
   fun functions(): Iterator[this->FunctionValue!]^ =>
-    let p = @LLVMGetFirstFunction[_Ptr](_p())
-    _RefIterator[this->FunctionValue](p, recover lambda tag(ptr': _Ptr): _Ptr =>
-      @LLVMGetNextFunction[_Ptr](ptr')
-    end end)
+    let start = @LLVMGetFirstFunction[_Ptr](_p())
+    _RefIterator[this->FunctionValue](start,
+      recover lambda tag(ptr': _Ptr): _Ptr =>
+        @LLVMGetNextFunction[_Ptr](ptr')
+      end end)
+  
+  fun reverse_functions(): Iterator[this->FunctionValue!]^ =>
+    let last = @LLVMGetLastFunction[_Ptr](_p())
+    _RefIterator[this->FunctionValue](last,
+      recover lambda tag(ptr': _Ptr): _Ptr =>
+        @LLVMGetPreviousFunction[_Ptr](ptr')
+      end end)

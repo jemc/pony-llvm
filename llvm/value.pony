@@ -24,10 +24,18 @@ trait Value is _Ref
     @LLVMReplaceAllUsesWith[None](_p(), that._p())
   
   fun uses(): Iterator[this->Use!]^ =>
-    var p = @LLVMGetFirstUse[_Ptr](_p())                // TODO: use let (compiler bug)
-    _RefIterator[this->Use](p, recover lambda tag(ptr': _Ptr): _Ptr =>
-      @LLVMGetNextUse[_Ptr](ptr')
-    end end)
+    var start = @LLVMGetFirstUse[_Ptr](_p())            // TODO: use let (compiler bug)
+    _RefIterator[this->Use](start,
+      recover lambda tag(ptr': _Ptr): _Ptr =>
+        @LLVMGetNextUse[_Ptr](ptr')
+      end end)
+  
+  fun reverse_uses(): Iterator[this->Use!]^ =>
+    var start = @LLVMGetLastUse[_Ptr](_p())             // TODO: use let (compiler bug)
+    _RefIterator[this->Use](start,
+      recover lambda tag(ptr': _Ptr): _Ptr =>
+        @LLVMGetPreviousUse[_Ptr](ptr')
+      end end)
 
 class AnyValue is Value
   let _ptr: _Ptr
@@ -47,10 +55,18 @@ class FunctionValue is Value
   new _from_p(ptr': _Ptr) => _ptr = ptr'
   
   fun basic_blocks(): Iterator[this->BasicBlock!]^ =>
-    let p = @LLVMGetFirstBasicBlock[_Ptr](_p())
-    _RefIterator[this->BasicBlock](p, recover lambda tag(ptr': _Ptr): _Ptr =>
-      @LLVMGetNextBasicBlock[_Ptr](ptr')
-    end end)
+    let start = @LLVMGetFirstBasicBlock[_Ptr](_p())
+    _RefIterator[this->BasicBlock](start,
+      recover lambda tag(ptr': _Ptr): _Ptr =>
+        @LLVMGetNextBasicBlock[_Ptr](ptr')
+      end end)
+  
+  fun reverse_basic_blocks(): Iterator[this->BasicBlock!]^ =>
+    let start = @LLVMGetLastBasicBlock[_Ptr](_p())
+    _RefIterator[this->BasicBlock](start,
+      recover lambda tag(ptr': _Ptr): _Ptr =>
+        @LLVMGetPreviousBasicBlock[_Ptr](ptr')
+      end end)
   
   fun entry_basic_block(): this->BasicBlock! =>
     let p = @LLVMGetEntryBasicBlock[_Ptr](_p())
