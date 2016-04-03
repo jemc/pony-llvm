@@ -23,4 +23,3 @@ class _RefIterator[A: _Ref #read] is Iterator[A]
   
   fun has_next(): Bool =>
     true
-
