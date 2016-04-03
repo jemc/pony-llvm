@@ -24,18 +24,14 @@ trait Value is _Ref
     @LLVMReplaceAllUsesWith[None](_p(), that._p())
   
   fun uses(): Iterator[this->Use!]^ =>
-    var start = @LLVMGetFirstUse[_Ptr](_p())            // TODO: use let (compiler bug)
-    _RefIterator[this->Use](start,
-      recover lambda tag(ptr': _Ptr): _Ptr =>
-        @LLVMGetNextUse[_Ptr](ptr')
-      end end)
+    var p = @LLVMGetFirstUse[_Ptr](_p())            // TODO: use let (compiler bug)
+    _NextIterator[this->Use](
+      recover Use._from_p(p) end)
   
   fun reverse_uses(): Iterator[this->Use!]^ =>
-    var start = @LLVMGetLastUse[_Ptr](_p())             // TODO: use let (compiler bug)
-    _RefIterator[this->Use](start,
-      recover lambda tag(ptr': _Ptr): _Ptr =>
-        @LLVMGetPreviousUse[_Ptr](ptr')
-      end end)
+    var p = @LLVMGetLastUse[_Ptr](_p())             // TODO: use let (compiler bug)
+    _PrevIterator[this->Use](
+      recover Use._from_p(p) end)
 
 class AnyValue is Value
   let _ptr: _Ptr
@@ -54,19 +50,25 @@ class FunctionValue is Value
   fun _p(): _Ptr => _ptr
   new _from_p(ptr': _Ptr) => _ptr = ptr'
   
+  fun next(): this->FunctionValue!? =>
+    let p = @LLVMGetNextFunction[_Ptr](_p())
+    if (identityof p) == 0 then error end
+    recover FunctionValue._from_p(p) end
+  
+  fun prev(): this->FunctionValue!? =>
+    let p = @LLVMGetPreviousFunction[_Ptr](_p())
+    if (identityof p) == 0 then error end
+    recover FunctionValue._from_p(p) end
+  
   fun basic_blocks(): Iterator[this->BasicBlock!]^ =>
-    let start = @LLVMGetFirstBasicBlock[_Ptr](_p())
-    _RefIterator[this->BasicBlock](start,
-      recover lambda tag(ptr': _Ptr): _Ptr =>
-        @LLVMGetNextBasicBlock[_Ptr](ptr')
-      end end)
+    let p = @LLVMGetFirstBasicBlock[_Ptr](_p())
+    _NextIterator[this->BasicBlock](
+      recover BasicBlock._from_p(p) end)
   
   fun reverse_basic_blocks(): Iterator[this->BasicBlock!]^ =>
-    let start = @LLVMGetLastBasicBlock[_Ptr](_p())
-    _RefIterator[this->BasicBlock](start,
-      recover lambda tag(ptr': _Ptr): _Ptr =>
-        @LLVMGetPreviousBasicBlock[_Ptr](ptr')
-      end end)
+    let p = @LLVMGetLastBasicBlock[_Ptr](_p())
+    _PrevIterator[this->BasicBlock](
+      recover BasicBlock._from_p(p) end)
   
   fun entry_basic_block(): this->BasicBlock! =>
     let p = @LLVMGetEntryBasicBlock[_Ptr](_p())
@@ -87,6 +89,16 @@ class InstructionValue is Value
   let _ptr: _Ptr
   fun _p(): _Ptr => _ptr
   new _from_p(ptr': _Ptr) => _ptr = ptr'
+  
+  fun next(): this->InstructionValue!? =>
+    let p = @LLVMGetNextInstruction[_Ptr](_p())
+    if (identityof p) == 0 then error end
+    recover InstructionValue._from_p(p) end
+  
+  fun prev(): this->InstructionValue!? =>
+    let p = @LLVMGetPreviousInstruction[_Ptr](_p())
+    if (identityof p) == 0 then error end
+    recover InstructionValue._from_p(p) end
 
 class TermInstructionValue is Value
   let _ptr: _Ptr

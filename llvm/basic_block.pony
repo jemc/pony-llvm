@@ -4,6 +4,16 @@ class BasicBlock is _Ref
   fun _p(): _Ptr => _ptr
   new _from_p(ptr': _Ptr) => _ptr = ptr'
   
+  fun next(): this->BasicBlock!? =>
+    let p = @LLVMGetNextBasicBlock[_Ptr](_p())
+    if (identityof p) == 0 then error end
+    recover BasicBlock._from_p(p) end
+  
+  fun prev(): this->BasicBlock!? =>
+    let p = @LLVMGetPreviousBasicBlock[_Ptr](_p())
+    if (identityof p) == 0 then error end
+    recover BasicBlock._from_p(p) end
+  
   fun as_value(): this->AnyValue! =>
     let p = @LLVMBasicBlockAsValue[_Ptr](_p())
     recover AnyValue._from_p(p) end
@@ -40,15 +50,11 @@ class BasicBlock is _Ref
     @LLVMMoveBasicBlockBefore[None](_p(), that._p())
   
   fun instructions(): Iterator[this->InstructionValue!]^ =>
-    let start = @LLVMGetFirstInstruction[_Ptr](_p())
-    _RefIterator[this->InstructionValue](start,
-      recover lambda tag(ptr': _Ptr): _Ptr =>
-        @LLVMGetNextInstruction[_Ptr](ptr')
-      end end)
+    let p = @LLVMGetFirstInstruction[_Ptr](_p())
+    _NextIterator[this->InstructionValue](
+      recover InstructionValue._from_p(p) end)
   
   fun reverse_instructions(): Iterator[this->InstructionValue!]^ =>
-    let start = @LLVMGetLastInstruction[_Ptr](_p())
-    _RefIterator[this->InstructionValue](start,
-      recover lambda tag(ptr': _Ptr): _Ptr =>
-        @LLVMGetPreviousInstruction[_Ptr](ptr')
-      end end)
+    let p = @LLVMGetLastInstruction[_Ptr](_p())
+    _PrevIterator[this->InstructionValue](
+      recover InstructionValue._from_p(p) end)
