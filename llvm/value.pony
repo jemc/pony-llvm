@@ -90,6 +90,9 @@ class InstructionValue is Value
   fun _p(): _Ptr => _ptr
   new _from_p(ptr': _Ptr) => _ptr = ptr'
   
+  new clone(that: InstructionValue box) =>
+    _ptr = @LLVMInstructionClone[_Ptr](that._p())
+  
   fun next(): this->InstructionValue!? =>
     let p = @LLVMGetNextInstruction[_Ptr](_p())
     if (identityof p) == 0 then error end
@@ -99,8 +102,32 @@ class InstructionValue is Value
     let p = @LLVMGetPreviousInstruction[_Ptr](_p())
     if (identityof p) == 0 then error end
     recover InstructionValue._from_p(p) end
+  
+  fun has_metadata(): Bool =>
+    0 != @LLVMHasMetadata[I32](_p())
+  
+  fun get_metadata(kind: U32): this->MetadataValue!? =>
+    let p = @LLVMGetMetadata[_Ptr](_p(), kind)
+    if (identityof p) == 0 then error end
+    recover MetadataValue._from_p(p) end
+  
+  fun ref set_metadata(kind: U32, node: Value) =>
+    @LLVMSetMetadata[None](_p(), kind, node._p())
+  
+  fun parent(): this->BasicBlock!? =>
+    let p = @LLVMGetInstructionParent[_Ptr](_p())
+    if (identityof p) == 0 then error end
+    recover BasicBlock._from_p(p) end
+  
+  fun erase_from_parent() =>
+    @LLVMInstructionEraseFromParent[None](_p())
 
 class TermInstructionValue is Value
+  let _ptr: _Ptr
+  fun _p(): _Ptr => _ptr
+  new _from_p(ptr': _Ptr) => _ptr = ptr'
+
+class MetadataValue is Value
   let _ptr: _Ptr
   fun _p(): _Ptr => _ptr
   new _from_p(ptr': _Ptr) => _ptr = ptr'
