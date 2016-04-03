@@ -29,17 +29,17 @@ class Module is _Ref
     if (identityof p) == 0 then error end
     recover _TypeUtil._from_p(p) end
   
-  fun ref add_function(name': String, type': FunctionType): Value! =>
+  fun ref add_function(name': String, type': FunctionType): FunctionValue! =>
     let p = @LLVMAddFunction[_Ptr](_p(), _Message.copy_out(name'), type'._p())
-    recover Value._from_p(p) end
+    recover FunctionValue._from_p(p) end
   
-  fun find_function(name': String): this->Value!? =>
+  fun find_function(name': String): this->FunctionValue!? =>
     let p = @LLVMGetNamedFunction[_Ptr](_p(), name'.cstring())
     if (identityof p) == 0 then error end
-    recover Value._from_p(p) end
+    recover FunctionValue._from_p(p) end
   
-  fun functions(): Iterator[this->Value!]^ =>
+  fun functions(): Iterator[this->FunctionValue!]^ =>
     let p = @LLVMGetFirstFunction[_Ptr](_p())
-    _RefIterator[this->Value](p, recover lambda tag(ptr': _Ptr): _Ptr =>
+    _RefIterator[this->FunctionValue](p, recover lambda tag(ptr': _Ptr): _Ptr =>
       @LLVMGetNextFunction[_Ptr](ptr')
     end end)
